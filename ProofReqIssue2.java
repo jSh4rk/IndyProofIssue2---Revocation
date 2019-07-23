@@ -160,6 +160,15 @@ public class ProofReqIssue2 {
 		System.out.println("Write initial accum to ledger response:\n" + response + "\n");
 		
 		
+		// read accum from ledger
+		long timestampAfterCreatingRevDef = getUnixTimeStamp(); 
+		request = Ledger.buildGetRevocRegRequest(didTrustAnchor, revRegDefId, timestampAfterCreatingRevDef).get();
+		response = Ledger.submitRequest(myPool, request).get();
+		ParseRegistryResponseResult resultAfterCreatingRevDef = Ledger.parseGetRevocRegResponse(response).get();
+		System.out.println("Accum Value at (after creating rev def): " + timestampAfterCreatingRevDef + "\n" +  resultAfterCreatingRevDef.getObjectJson() + "\n");
+		//
+		
+		
 		
 		// trust anchor issues a credential corresponding to the prior created
 		// credential definition and issues it to someone
@@ -194,7 +203,19 @@ public class ProofReqIssue2 {
 		// trust anchor publishes the new delta to the ledger
 		request = Ledger.buildRevocRegEntryRequest(didTrustAnchor, revRegDefId, revDefType, issuedCredentialDelta).get(); 
 		response = Ledger.signAndSubmitRequest(myPool, myWallet, didTrustAnchor, request).get(); 
-		System.out.println("Issuer writes the delta after issueing a credential to the ledger result \n" + response + "\n");
+		System.out.println("Issuer writes the delta after issueing a credential to the ledger response \n" + response + "\n");
+		
+		
+		
+		
+		// read accum from ledger
+		long timestampAfterWritingDeltaAfterIssueingCredential = getUnixTimeStamp(); 
+		request = Ledger.buildGetRevocRegRequest(didTrustAnchor, revRegDefId, timestampAfterWritingDeltaAfterIssueingCredential).get();
+		response = Ledger.submitRequest(myPool, request).get();
+		ParseRegistryResponseResult resultAfterCredentialIssueing = Ledger.parseGetRevocRegResponse(response).get();
+		System.out.println("Accum Value at (after issueing credential): " + timestampAfterWritingDeltaAfterIssueingCredential + "\n" +  resultAfterCredentialIssueing.getObjectJson() + "\n");
+		//
+		
 		
 		
 		
@@ -210,6 +231,7 @@ public class ProofReqIssue2 {
 		
 		// the issuer revokes the credential and publishes the new delta on the ledger
 		String credRevocId = createCredResult.getRevocId();
+		System.out.println("The credential Revoc Id is:\n" + credRevocId + "\n");
 		String newDeltaAfterRevocation = Anoncreds.issuerRevokeCredential(myWallet, blobReaderHandle, revRegDefId, credRevocId).get();
 		request = Ledger.buildRevocRegEntryRequest(didTrustAnchor, revRegDefId, revDefType, newDeltaAfterRevocation).get();
 		//System.out.println("Request to publish the new delta after Revocatin on the ledger:\n" + request + "\n");
@@ -218,6 +240,19 @@ public class ProofReqIssue2 {
 		
 		
 		Thread.sleep(100); // let the thread sleep, so we definetly get a timestamp which is bigger than the moment we revoked the credential
+		
+		
+		
+		
+		// read accum from ledger
+		long timestampAfterRevocation = getUnixTimeStamp(); 
+		request = Ledger.buildGetRevocRegRequest(didTrustAnchor, revRegDefId, timestampAfterRevocation).get();
+		response = Ledger.submitRequest(myPool, request).get();
+		ParseRegistryResponseResult resultAfterRevocation = Ledger.parseGetRevocRegResponse(response).get();
+		System.out.println("Accum Value at (after revocation): " + timestampAfterRevocation + "\n" +  resultAfterRevocation.getObjectJson() + "\n");
+		//
+		
+		
 		
 		
 		/*
@@ -329,9 +364,19 @@ public class ProofReqIssue2 {
 		System.out.println("Prover has build his own Revocation States:\n" + revocRegDefs + "\n");
 		
 		
+		// this response doesn't contain any lists
 		request = Ledger.buildGetRevocRegRequest(didProver, revRegDefId, proverTimestamp).get();
 		response = Ledger.submitRequest(myPool, request).get();
 		System.out.println("Read RevocReg from Ledger response:\n" + response + "\n");
+		
+		
+		request = Ledger.buildGetRevocRegRequest(didProver, revRegDefId, getUnixTimeStamp()).get();
+		response = Ledger.submitRequest(myPool, request).get();
+		System.out.println("Read RevocReg from Ledger response:\n" + response + "\n");
+		
+		
+		
+		
 		
 		
 		Boolean verifyResult = Anoncreds.verifierVerifyProof(proofRequest.toString(), proof, schemas.toString(),
