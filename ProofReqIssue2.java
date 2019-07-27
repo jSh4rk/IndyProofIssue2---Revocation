@@ -239,7 +239,7 @@ public class ProofReqIssue2 {
 		System.out.println("The issuer has revoked the credential and published the new accum delta on the ledger\n" + response + "\n");
 		
 		
-		Thread.sleep(100); // let the thread sleep, so we definetly get a timestamp which is bigger than the moment we revoked the credential
+		Thread.sleep(3*1000); // let the thread sleep, so we definetly get a timestamp which is bigger than the moment we revoked the credential
 		
 		
 		
@@ -358,21 +358,40 @@ public class ProofReqIssue2 {
 		
 		request = Ledger.buildGetRevocRegDeltaRequest(didTrustAnchor, revRegDefId, from, to).get();
 		response = Ledger.signAndSubmitRequest(myPool, myWallet, didTrustAnchor, request).get();
+		System.out.println("Prover has read the revoc delta for interval from: " + from + "to: " + to + " response from ledger \n" + response + "\n");
 		ParseRegistryResponseResult  parseRegRespResult = Ledger.parseGetRevocRegDeltaResponse(response).get();
 		String proverReadDeltaFromLedger = parseRegRespResult.getObjectJson();
+		System.out.println("Prover has read the revoc delta for interval from: " + from + "to: " + to + "\n" + proverReadDeltaFromLedger + "\n");
+		
+		/*
+		 * revoc delta for current timestamp
+		 */
+		long time = getUnixTimeStamp(); 
+		request = Ledger.buildGetRevocRegDeltaRequest(didTrustAnchor, revRegDefId, time, time).get();
+		response = Ledger.signAndSubmitRequest(myPool, myWallet, didTrustAnchor, request).get();
+		System.out.println("Prover has read the revoc delta for interval from: " + time + "to: " + time + " response from ledger \n" + response + "\n");
+		parseRegRespResult = Ledger.parseGetRevocRegDeltaResponse(response).get();
+		proverReadDeltaFromLedger = parseRegRespResult.getObjectJson();
+		System.out.println("Prover has read the revoc delta for interval from: " + time + "to: " + time + "\n" + proverReadDeltaFromLedger + "\n");
+		/*
+		 * 
+		 */
+		
+		
 		revocRegs.put(revRegDefId, new JSONObject().put(Long.toString(proverTimestamp), new JSONObject(proverReadDeltaFromLedger)));
 		System.out.println("Prover has build his own Revocation States:\n" + revocRegDefs + "\n");
 		
 		
-		// this response doesn't contain any lists
+		/*
 		request = Ledger.buildGetRevocRegRequest(didProver, revRegDefId, proverTimestamp).get();
 		response = Ledger.submitRequest(myPool, request).get();
 		System.out.println("Read RevocReg from Ledger response:\n" + response + "\n");
 		
-		
+	
 		request = Ledger.buildGetRevocRegRequest(didProver, revRegDefId, getUnixTimeStamp()).get();
 		response = Ledger.submitRequest(myPool, request).get();
 		System.out.println("Read RevocReg from Ledger response:\n" + response + "\n");
+		*/
 		
 		
 		
